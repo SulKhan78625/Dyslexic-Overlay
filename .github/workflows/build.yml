@@ -29,13 +29,19 @@ jobs:
       - name: Build for Windows
         if: matrix.os == 'windows-latest'
         run: npm run electron:build:win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Build for macOS
         if: matrix.os == 'macos-latest'
         run: npm run electron:build:mac
         env:
-          # Skip code signing on Mac (you'd need an Apple Developer account for this)
           CSC_IDENTITY_AUTO_DISCOVERY: false
+          APPLE_ID: ""
+          APPLE_APP_SPECIFIC_PASSWORD: ""
+          CSC_LINK: ""
+          CSC_KEY_PASSWORD: ""
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Upload Windows artifacts
         if: matrix.os == 'windows-latest'
