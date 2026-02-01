@@ -69,13 +69,19 @@ function createMainWindow() {
 
 // Create the overlay window (transparent, always on top)
 function createOverlayWindow() {
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { width, height } = primaryDisplay.bounds;
+
   const overlayConfig = {
     transparent: true,
     frame: false,
     alwaysOnTop: true,
     skipTaskbar: true,
-    fullscreen: true,
     hasShadow: false,
+    x: 0,
+    y: 0,
+    width: width,
+    height: height,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
@@ -86,6 +92,7 @@ function createOverlayWindow() {
   if (isMac) {
     overlayConfig.acceptFirstMouse = true;
     overlayConfig.visibleOnAllWorkspaces = true;
+    overlayConfig.type = 'panel'; // This prevents it from capturing the screen
   }
 
   overlayWindow = new BrowserWindow(overlayConfig);
@@ -94,8 +101,8 @@ function createOverlayWindow() {
   overlayWindow.setIgnoreMouseEvents(true);
   
   if (isMac) {
-    // Mac requires special window level
-    overlayWindow.setAlwaysOnTop(true, 'screen-saver', 1);
+    // Mac requires special window level - use floating-window instead of screen-saver
+    overlayWindow.setAlwaysOnTop(true, 'floating', 1);
     overlayWindow.setVisibleOnAllWorkspaces(true);
   } else {
     // Windows/Linux
