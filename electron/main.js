@@ -92,18 +92,22 @@ function createOverlayWindow() {
   if (isMac) {
     overlayConfig.acceptFirstMouse = true;
     overlayConfig.visibleOnAllWorkspaces = true;
-    overlayConfig.type = 'panel'; // This prevents it from capturing the screen
+    overlayConfig.type = 'panel';
+    overlayConfig.fullscreenable = false;
+    overlayConfig.hiddenInMissionControl = true;
   }
 
   overlayWindow = new BrowserWindow(overlayConfig);
 
-  // Make it click-through
-  overlayWindow.setIgnoreMouseEvents(true);
+  // Make it click-through - this is critical!
+  overlayWindow.setIgnoreMouseEvents(true, { forward: true });
   
   if (isMac) {
-    // Mac requires special window level - use floating-window instead of screen-saver
-    overlayWindow.setAlwaysOnTop(true, 'floating', 1);
+    // Mac: use pop-up-menu level (lowest overlay level)
+    overlayWindow.setAlwaysOnTop(true, 'pop-up-menu');
     overlayWindow.setVisibleOnAllWorkspaces(true);
+    // Prevent window from being focusable
+    overlayWindow.setFocusable(false);
   } else {
     // Windows/Linux
     overlayWindow.setAlwaysOnTop(true, 'screen-saver');
@@ -201,35 +205,40 @@ function applyOverlaySize(size, customWidth, customHeight) {
   if (!overlayWindow) return;
   
   const primaryDisplay = screen.getPrimaryDisplay();
-  const { width, height } = primaryDisplay.workAreaSize;
+  const { width, height } = primaryDisplay.bounds;
   
   switch(size) {
     case 'fullscreen':
-      overlayWindow.setFullScreen(true);
+      if (isMac) {
+        // On Mac, use setBounds instead of setFullScreen to avoid creating a new space
+        overlayWindow.setBounds({ x: 0, y: 0, width: width, height: height });
+      } else {
+        overlayWindow.setFullScreen(true);
+      }
       break;
       
     case 'top-half':
-      overlayWindow.setFullScreen(false);
+      if (isMac) overlayWindow.setFullScreen(false);
       overlayWindow.setBounds({ x: 0, y: 0, width: width, height: Math.floor(height / 2) });
       break;
       
     case 'bottom-half':
-      overlayWindow.setFullScreen(false);
+      if (isMac) overlayWindow.setFullScreen(false);
       overlayWindow.setBounds({ x: 0, y: Math.floor(height / 2), width: width, height: Math.floor(height / 2) });
       break;
       
     case 'left-half':
-      overlayWindow.setFullScreen(false);
+      if (isMac) overlayWindow.setFullScreen(false);
       overlayWindow.setBounds({ x: 0, y: 0, width: Math.floor(width / 2), height: height });
       break;
       
     case 'right-half':
-      overlayWindow.setFullScreen(false);
+      if (isMac) overlayWindow.setFullScreen(false);
       overlayWindow.setBounds({ x: Math.floor(width / 2), y: 0, width: Math.floor(width / 2), height: height });
       break;
       
     case 'center':
-      overlayWindow.setFullScreen(false);
+      if (isMac) overlayWindow.setFullScreen(false);
       const centerWidth = Math.floor(width * 0.7);
       const centerHeight = Math.floor(height * 0.7);
       overlayWindow.setBounds({ 
@@ -241,7 +250,7 @@ function applyOverlaySize(size, customWidth, customHeight) {
       break;
       
     case 'custom':
-      overlayWindow.setFullScreen(false);
+      if (isMac) overlayWindow.setFullScreen(false);
       const w = Math.min(customWidth || 800, width);
       const h = Math.min(customHeight || 600, height);
       // Center the custom size
@@ -368,17 +377,50 @@ app.whenReady().then(() => {
     toggleOverlay();
   });
 
-  // Register modifier + arrow keys for reading guide (only when guide is active)
+  // Register modifier + arrow keys for reading guide with repeat capability
   // Using Cmd/Ctrl + Up/Down to avoid conflicts with other applications
   const upShortcut = isMac ? 'Command+Up' : 'Control+Up';
   const downShortcut = isMac ? 'Command+Down' : 'Control+Down';
   
+  let upInterval = null;
+  let downInterval = null;
+  
   globalShortcut.register(upShortcut, () => {
     moveReadingGuideUp();
+    
+    // Start repeating if held down
+    if (!upInterval) {
+      upInterval = setInterval(() => {
+        moveReadingGuideUp();
+      }, 50); // Repeat every 50ms when held
+    }
+    
+    // Clear interval after key release
+    setTimeout(() => {
+      if (upInterval) {
+        clearInterval(upInterval);
+        upInterval = null;
+      }
+    }, 100);
   });
-
+  
   globalShortcut.register(downShortcut, () => {
     moveReadingGuideDown();
+    
+    // Start repeating if held down
+    if (!downInterval) {
+      downInterval = setInterval(() => {
+        moveReadingGuideDown();
+      }, 50); // Repeat every 50ms when held
+    }
+    
+    // Clear interval after key release
+    setTimeout(() => {
+      if (downInterval) {
+        clearInterval(downInterval);
+        downInterval = null;
+      }
+    }, 100);
   });
 
   app.on('activate', () => {
