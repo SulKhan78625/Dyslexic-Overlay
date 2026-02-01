@@ -377,50 +377,55 @@ app.whenReady().then(() => {
     toggleOverlay();
   });
 
-  // Register modifier + arrow keys for reading guide with repeat capability
+  // Register modifier + arrow keys for reading guide with better repeat
   // Using Cmd/Ctrl + Up/Down to avoid conflicts with other applications
   const upShortcut = isMac ? 'Command+Up' : 'Control+Up';
   const downShortcut = isMac ? 'Command+Down' : 'Control+Down';
   
-  let upInterval = null;
-  let downInterval = null;
+  // Store timing for key repeat detection
+  let lastUpTime = 0;
+  let lastDownTime = 0;
+  let upRepeatCount = 0;
+  let downRepeatCount = 0;
   
   globalShortcut.register(upShortcut, () => {
-    moveReadingGuideUp();
+    const now = Date.now();
     
-    // Start repeating if held down
-    if (!upInterval) {
-      upInterval = setInterval(() => {
+    // If pressed within 100ms of last press, it's being held/repeated
+    if (now - lastUpTime < 100) {
+      upRepeatCount++;
+      // Move faster the longer it's held
+      const moves = Math.min(upRepeatCount, 5);
+      for (let i = 0; i < moves; i++) {
         moveReadingGuideUp();
-      }, 50); // Repeat every 50ms when held
+      }
+    } else {
+      // First press or after a pause
+      upRepeatCount = 0;
+      moveReadingGuideUp();
     }
     
-    // Clear interval after key release
-    setTimeout(() => {
-      if (upInterval) {
-        clearInterval(upInterval);
-        upInterval = null;
-      }
-    }, 100);
+    lastUpTime = now;
   });
   
   globalShortcut.register(downShortcut, () => {
-    moveReadingGuideDown();
+    const now = Date.now();
     
-    // Start repeating if held down
-    if (!downInterval) {
-      downInterval = setInterval(() => {
+    // If pressed within 100ms of last press, it's being held/repeated
+    if (now - lastDownTime < 100) {
+      downRepeatCount++;
+      // Move faster the longer it's held
+      const moves = Math.min(downRepeatCount, 5);
+      for (let i = 0; i < moves; i++) {
         moveReadingGuideDown();
-      }, 50); // Repeat every 50ms when held
+      }
+    } else {
+      // First press or after a pause
+      downRepeatCount = 0;
+      moveReadingGuideDown();
     }
     
-    // Clear interval after key release
-    setTimeout(() => {
-      if (downInterval) {
-        clearInterval(downInterval);
-        downInterval = null;
-      }
-    }, 100);
+    lastDownTime = now;
   });
 
   app.on('activate', () => {
