@@ -18,9 +18,9 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/SulKhan78625/Dyslexia-Overlay.git"
+    "url": "https://github.com/YOUR-USERNAME/dyslexia-overlay.git"
   },
-  "homepage": "https://github.com/SulKhan78625/Dyslexia-Overlay#readme",
+  "homepage": "https://github.com/YOUR-USERNAME/dyslexia-overlay#readme",
   "dependencies": {
     "electron-store": "^8.1.0",
     "react": "^18.2.0",
@@ -54,11 +54,6 @@
       "buildResources": "build",
       "output": "dist-electron"
     },
-    "publish": {
-      "provider": "github",
-      "owner": "YOUR-USERNAME",
-      "repo": "dyslexia-overlay"
-    },
     "win": {
       "target": [
         {
@@ -91,7 +86,10 @@
         }
       ],
       "icon": "build/icon.icns",
-      "category": "public.app-category.productivity"
+      "category": "public.app-category.productivity",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "notarize": false
     },
     "dmg": {
       "contents": [
