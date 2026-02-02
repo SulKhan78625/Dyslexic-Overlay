@@ -377,55 +377,24 @@ app.whenReady().then(() => {
     toggleOverlay();
   });
 
-  // Register modifier + arrow keys for reading guide with better repeat
+  // Register modifier + arrow keys for reading guide
   // Using Cmd/Ctrl + Up/Down to avoid conflicts with other applications
   const upShortcut = isMac ? 'Command+Up' : 'Control+Up';
   const downShortcut = isMac ? 'Command+Down' : 'Control+Down';
   
-  // Store timing for key repeat detection
-  let lastUpTime = 0;
-  let lastDownTime = 0;
-  let upRepeatCount = 0;
-  let downRepeatCount = 0;
-  
+  // Each keypress triggers multiple rapid movements
   globalShortcut.register(upShortcut, () => {
-    const now = Date.now();
-    
-    // If pressed within 100ms of last press, it's being held/repeated
-    if (now - lastUpTime < 100) {
-      upRepeatCount++;
-      // Move faster the longer it's held
-      const moves = Math.min(upRepeatCount, 5);
-      for (let i = 0; i < moves; i++) {
-        moveReadingGuideUp();
-      }
-    } else {
-      // First press or after a pause
-      upRepeatCount = 0;
-      moveReadingGuideUp();
-    }
-    
-    lastUpTime = now;
+    // Move 3 times per keypress for smoother experience
+    moveReadingGuideUp();
+    setTimeout(() => moveReadingGuideUp(), 15);
+    setTimeout(() => moveReadingGuideUp(), 30);
   });
   
   globalShortcut.register(downShortcut, () => {
-    const now = Date.now();
-    
-    // If pressed within 100ms of last press, it's being held/repeated
-    if (now - lastDownTime < 100) {
-      downRepeatCount++;
-      // Move faster the longer it's held
-      const moves = Math.min(downRepeatCount, 5);
-      for (let i = 0; i < moves; i++) {
-        moveReadingGuideDown();
-      }
-    } else {
-      // First press or after a pause
-      downRepeatCount = 0;
-      moveReadingGuideDown();
-    }
-    
-    lastDownTime = now;
+    // Move 3 times per keypress for smoother experience
+    moveReadingGuideDown();
+    setTimeout(() => moveReadingGuideDown(), 15);
+    setTimeout(() => moveReadingGuideDown(), 30);
   });
 
   app.on('activate', () => {
